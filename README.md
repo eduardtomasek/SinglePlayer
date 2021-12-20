@@ -40,6 +40,14 @@ Set default audio device
 defaults.ctl.card 1
 defaults.pcm.card 1
 ```
+
+# Setup startup led
+I want led indicates system is ready.
+```
+sudo crontab -e
+
+@reboot bash /home/pi/SinglePlayer/startup_led.sh >/home/pi/startup_led_cronlog 2>&1
+```
 # Sources
 Cause my memory is horrible and I did not use python for aeons.
 ## Logging
