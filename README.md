@@ -48,6 +48,10 @@ sudo crontab -e
 
 @reboot bash /home/pi/SinglePlayer/startup_led.sh >/home/pi/startup_led_cronlog 2>&1
 ```
+
+# First naive plan :D
+![plan1][./docs/images/firstNaive.png "First Plan"]
+
 # Sources
 Cause my memory is horrible and I did not use python for aeons.
 ## Logging
