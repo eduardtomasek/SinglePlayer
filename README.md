@@ -50,7 +50,7 @@ sudo crontab -e
 ```
 
 # First naive plan :D
-![plan1][./docs/images/firstNaive.png "First Plan"]
+![plan1](./docs/images/firstNaive.png "First Plan")
 
 # Sources
 Cause my memory is horrible and I did not use python for aeons.
