@@ -3,6 +3,7 @@ import time
 import sys
 import logging
 import getopt
+import json
 import RPi.GPIO as GPIO
 
 GPIO.setwarnings(False)
@@ -13,9 +14,12 @@ GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 LOG_FORMAT = '%(asctime)s %(process)d %(levelname)s %(message)s'
 LOG_FILE = 'single_player.log'
 
+stations = []
+
 pause = False
 player = False
 
+# FUNCTIONS
 def playpause_callback(channel):
         global pause
 
@@ -28,8 +32,16 @@ def playpause_callback(channel):
                 player.play()
                 logging.info('Resumed')
 
+def load_stations(path):
+    f = open(path)
+    data = json.load(f)
+    f.close()
+
+    return data
+
 def main(argv):
         global player
+        global stations
 
         # LOGGING SETUP
         logging.basicConfig(filename=LOG_FILE, filemode='a', format=LOG_FORMAT, level=logging.DEBUG)
@@ -42,8 +54,16 @@ def main(argv):
 
         # PROCESS ARGUMENTS
         try:
-                opts, args = getopt.getopt(argv, '')
-                uri = args[0]
+                opts, args = getopt.getopt(argv, 's', ['stations'])
+                for opt, arg in opts:
+                    if opt in ['-s', '--stations']:
+                        stations = load_stations(arg)
+
+                if not stations:
+                    stations = [{
+                        "name": "URI Radio",
+                        "uri": args[0]
+                    }]
         except getopt.GetoptError as e:
                 logging.error("%s: %s\n" % (args[0], e.msg))
                 sys.exit(2)
@@ -52,7 +72,7 @@ def main(argv):
         GPIO.add_event_detect(10, GPIO.RISING, callback = playpause_callback, bouncetime=500)
 
         # PLAYER INIT
-        player = vlc.MediaPlayer(uri)
+        player = vlc.MediaPlayer(stations[0].uri)
         player.play()
 
         # WAITING FOR STREAM
