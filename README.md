@@ -3,7 +3,22 @@ Simple RPi Zero internet stream player.
 
 # Usage
 ```python single_player.py <audio stream URL>```
+```python single_player.py -s <json list file> ```
 
+# JSON List File
+```
+[
+    {
+        "name": "Classic Rock Florida HD",
+        "uri": "http://us4.internet-radio.com:8258/"
+    },
+    {
+        "name": "Smooth Jazz Florida WSJF-DB",
+        "uri": "https://www.internet-radio.com/servers/tools/playlistgenerator/?u=http://us4.internet-radio.com:8266/listen.pls&t=.m3u",
+        "type": "m3u"
+    } 
+  ]
+```
 # Setup USB Audio Device
 ```shell
 lsusb
@@ -64,3 +79,9 @@ https://www.geeksforgeeks.org/vlc-module-in-python-an-introduction/
 https://stackoverflow.com/a/66083570
 ## USB Audio Device
 https://www.raspberrypi-spy.co.uk/2019/06/using-a-usb-audio-device-with-the-raspberry-pi/
+
+## URLLIB
+https://www.geeksforgeeks.org/python-urllib-module/
+
+## URL Attachment
+https://stackoverflow.com/a/61630166
