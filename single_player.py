@@ -21,7 +21,6 @@ GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 LOG_FORMAT = '%(asctime)s %(process)d %(levelname)s %(message)s'
 LOG_FILE = 'single_player.log'
 TMP_FOLDER = os.path.join('.', 'tmp')
-FILE_TYPE = 'file'
 
 MEDIA_TYPE_STREAM = 'direct_stream'
 MEDIA_TYPE_M3U = 'm3u'
@@ -159,14 +158,20 @@ def stations_preprocessing(stations):
 		mediaType =  s['type'] if 'type' in s else ''
 		passTest = False
 
-		if (uri[:4] == FILE_TYPE):
+		if os.path.isfile(uri):
+			uri = absolute_path(uri)
 			passTest = True
 
-		if (passTest == False):
+		if uri[:4] == 'file':
+			uri = absolute_path(uri)
+			if os.path.isfile(uri):
+				passTest = True
+
+		if passTest == False and uri[:4] == 'http':
 			if mediaType == MEDIA_TYPE_STREAM:
 				passTest = check_stream(uri)
 			elif mediaType == MEDIA_TYPE_M3U:
-				if (is_attachment(uri) or is_text_plain(uri)):
+				if is_attachment(uri) or is_text_plain(uri):
 					mkdir(TMP_FOLDER)
 					sanitizedName = sanitize_file_name(name)
 					filePath = os.path.join(TMP_FOLDER, sanitizedName + '.m3u')

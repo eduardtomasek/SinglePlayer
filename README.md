@@ -3,6 +3,7 @@ Simple RPi Zero internet stream player.
 
 # Usage
 ```python single_player.py <audio stream URL>```
+
 ```python single_player.py -s <json list file> ```
 
 # JSON List File
@@ -16,6 +17,10 @@ Simple RPi Zero internet stream player.
         "name": "Smooth Jazz Florida WSJF-DB",
         "uri": "https://www.internet-radio.com/servers/tools/playlistgenerator/?u=http://us4.internet-radio.com:8266/listen.pls&t=.m3u",
         "type": "m3u"
+    },
+    {
+      "name": "Majestic Jukebox Radio HIGH QUALITY SOUND",
+      "uri": "file:///home/pi/SinglePlayer/tmp/live.m3u"
     } 
   ]
 ```
