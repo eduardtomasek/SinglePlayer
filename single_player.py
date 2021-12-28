@@ -89,7 +89,96 @@ class VLC:
 
 		self.stationIndex = self.stationIndex + 1
 
-# FUNCTIONS
+class StationsList:
+	def __init__(self, options):
+		self.MEDIA_TYPE_M3U = 'm3u'
+		self.MEDIA_TYPE_STREAM = 'direct_stream'
+		self.TMP_FOLDER = options['tmpFolder']
+
+	def _check_stream(self, url):
+		code = 0
+
+		try:
+			code = urllib.request.urlopen(url).getcode()
+		except Exception as e:
+			code = e.code
+			logging.error('Exception ocurred', exc_info=True)
+		
+		stringCode = str(code)
+
+		if stringCode.startswith('2') or stringCode.startswith('3'):
+			return True
+		
+		return False
+
+	def _sanitize_file_name(self, filename):
+		return re.sub('[ ,.]', '_', filename)
+
+	def _mkdir(self, path):
+		if not os.path.exists(path):
+			os.mkdir(path)
+
+	def _is_attachment(self, url):
+		headers = requests.get(url, stream=True).headers
+		return 'attachment' in headers.get('Content-Disposition', '')
+
+	def _is_text_plain(self, url):
+		headers = requests.get(url, stream=True).headers
+
+		return 'text/plain' in headers.get('Content-Type', '')
+	
+	def _download_file(self, url, path):
+		data = requests.get(url)
+
+		with open(path, 'wb') as file:
+			file.write(data.content)
+	
+	def _absolute_path(self, path):
+		p = urlparse(path)
+		return os.path.abspath(os.path.join(p.netloc, p.path))
+
+	def preprocessing(self, stations):
+		newStations = []
+
+		for s in stations:
+			uri = s['uri']
+			name = s['name']
+			mediaType =  s['type'] if 'type' in s else ''
+			passTest = False
+
+			if os.path.isfile(uri):
+				uri = self._absolute_path(uri)
+				passTest = True
+
+			if passTest == False and uri[:4] == 'file':
+				uri = self._absolute_path(uri)
+				if os.path.isfile(uri):
+					passTest = True
+
+			if passTest == False and uri[:4] == 'http':
+				if mediaType == self.MEDIA_TYPE_STREAM:
+					passTest = self._check_stream(uri)
+				elif mediaType == self.MEDIA_TYPE_M3U:
+					if self._is_attachment(uri) or self._is_text_plain(uri):
+						self._mkdir(self.TMP_FOLDER)
+						sanitizedName = self._sanitize_file_name(name)
+						filePath = os.path.join(self.TMP_FOLDER, sanitizedName + '.m3u')
+						self._download_file(uri, filePath)
+						uri = self._absolute_path(filePath)
+					
+					passTest = True
+				else:
+					passTest = self._check_stream(uri)
+			
+			if passTest == True:
+				newStations.append({
+					"name": s['name'],
+					"uri": uri
+				})
+		
+		return newStations
+	
+# CALLBACKS
 def playpause_callback(channel):
 	if (player.togglePause() == True):
 		logging.info('Paused')
@@ -100,6 +189,7 @@ def changestation_callback(channel):
 	player.next()
 	logging.info("next %s", player.getCurrentStationName())
 
+# FUNCTIONS
 def load_stations(path):
 	f = open(path)
 	data = json.load(f)
@@ -107,92 +197,10 @@ def load_stations(path):
 
 	return data
 
-def check_stream(url):
-	code = 0
-
-	try:
-		code = urllib.request.urlopen(url).getcode()
-	except Exception as e:
-		code = e.code
-		logging.error('Exception ocurred', exc_info=True)
-	
-	stringCode = str(code)
-
-	if stringCode.startswith('2') or stringCode.startswith('3'):
-		return True
-	
-	return False
-
-def sanitize_file_name(filename):
-	return re.sub('[ ,.]', '_', filename)
-
-def mkdir(path):
-	if not os.path.exists(path):
-		os.mkdir(path)
-
-def is_attachment(url):
-	headers = requests.get(url, stream=True).headers
-	return 'attachment' in headers.get('Content-Disposition', '')
-
-def is_text_plain(url):
-	headers = requests.get(url, stream=True).headers
-
-	return CONTENT_TYPE_TEXT in headers.get('Content-Type', '')
-
-def download_file(url, path):
-	data = requests.get(url)
-
-	with open(path, 'wb') as file:
-		file.write(data.content)
-
-def absolute_path(path):
-	p = urlparse(path)
-	return os.path.abspath(os.path.join(p.netloc, p.path))
-
-def stations_preprocessing(stations):
-	newStations = []
-
-	for s in stations:
-		uri = s['uri']
-		name = s['name']
-		mediaType =  s['type'] if 'type' in s else ''
-		passTest = False
-
-		if os.path.isfile(uri):
-			uri = absolute_path(uri)
-			passTest = True
-
-		if uri[:4] == 'file':
-			uri = absolute_path(uri)
-			if os.path.isfile(uri):
-				passTest = True
-
-		if passTest == False and uri[:4] == 'http':
-			if mediaType == MEDIA_TYPE_STREAM:
-				passTest = check_stream(uri)
-			elif mediaType == MEDIA_TYPE_M3U:
-				if is_attachment(uri) or is_text_plain(uri):
-					mkdir(TMP_FOLDER)
-					sanitizedName = sanitize_file_name(name)
-					filePath = os.path.join(TMP_FOLDER, sanitizedName + '.m3u')
-					download_file(uri, filePath)
-					uri = absolute_path(filePath)
-				
-				passTest = True
-			else:
-				passTest = check_stream(uri)
-		
-		if (passTest == True):
-			newStations.append({
-				"name": s['name'],
-				"uri": uri
-			})
-	
-	return newStations
-
 def main(argv):
 	global player
 	stations = []
+	sl = StationsList({ 'tmpFolder': TMP_FOLDER })
 
 	# LOGGING SETUP
 	logging.basicConfig(filename=LOG_FILE, filemode='a', format=LOG_FORMAT, level=logging.DEBUG)
@@ -225,7 +233,8 @@ def main(argv):
 
 	# PLAYER INIT
 	player = VLC()
-	player.addPlaylist(stations_preprocessing(stations))
+	#player.addPlaylist(stations_preprocessing(stations))
+	player.addPlaylist(sl.preprocessing(stations))
 	player.play()
 
 	# WAITING FOR STREAM
