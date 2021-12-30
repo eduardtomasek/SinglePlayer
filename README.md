@@ -90,3 +90,14 @@ https://www.geeksforgeeks.org/python-urllib-module/
 
 ## URL Attachment
 https://stackoverflow.com/a/61630166
+
+## Script as a Service
+https://gist.github.com/emxsys/a507f3cad928e66f6410e7ac28e2990f
+
+## RPi multiple WiFi networks
+https://ralfweinbrecher.de/post/multiple-wifi-networks-on-raspberrypi/
+
+## python-vlc events
+https://stackoverflow.com/a/36812273
+
+https://github.com/oaubert/python-vlc/blob/master/generated/3.0/vlc.py

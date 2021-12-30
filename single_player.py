@@ -22,17 +22,15 @@ LOG_FORMAT = '%(asctime)s %(process)d %(levelname)s %(message)s'
 LOG_FILE = 'single_player.log'
 TMP_FOLDER = os.path.join('.', 'tmp')
 
-MEDIA_TYPE_STREAM = 'direct_stream'
-MEDIA_TYPE_M3U = 'm3u'
-
-CONTENT_TYPE_TEXT = 'text/plain'
-
 player = False
 
 # CLASSES
 class VLC:
 	def __init__(self):
 		self.Player = vlc.Instance('--loop')
+		self.listPlayer = None
+		self.mediaList = None
+		self.stationsList = None
 		self.stationIndex = 0
 		self.statePause = False
 
@@ -40,10 +38,17 @@ class VLC:
 		self.listPlayer.play()
 
 	def next(self):
-		if self.listPlayer.next() == -1:
-			self.listPlayer.next()
+		#nextDone = self.listPlayer.next()
+		#logging.info('next: %s', nextDone)
 
+		#if nextDone == -1:
+			#nextDone = self.listPlayer.next()
+
+		#if nextDone != -1:
+			#self.setStationIndex()
+		
 		self.setStationIndex()
+		self.playItemOnIndex(self.stationIndex)
 
 	def pause(self):
 		self.listPlayer.pause()
@@ -52,14 +57,17 @@ class VLC:
 		self.statePause = not self.statePause
 
 		if self.statePause == True:
-			self.pause()
+			self.stop()
 		else:
-			self.play()
+			self.playItemOnIndex(self.stationIndex)
 
 		return self.statePause
 
 	def previous(self):
 		self.listPlayer.previous()
+
+	def playItemOnIndex(self, index):
+		return self.listPlayer.play_item_at_index(index)
 
 	def stop(self):
 		self.listPlayer.stop()
@@ -79,6 +87,9 @@ class VLC:
 
 	def getCurrentStationInfo(self):
 		return self.stationsList[self.stationIndex]
+
+	def getCurrentStationIndex(self):
+		return self.stationIndex
 
 	def getCurrentStationName(self):
 		return self.stationsList[self.stationIndex]['name']
@@ -180,14 +191,14 @@ class StationsList:
 	
 # CALLBACKS
 def playpause_callback(channel):
-	if (player.togglePause() == True):
-		logging.info('Paused')
+	if player.togglePause() == True:
+		logging.info('%s paused', player.getCurrentStationName())
 	else:
-		logging.info('Resumed')
+		logging.info('%s resumed', player.getCurrentStationName())
 
 def changestation_callback(channel):
 	player.next()
-	logging.info("next %s", player.getCurrentStationName())
+	logging.info("next [%s] %s", player.getCurrentStationIndex(), player.getCurrentStationName())
 
 # FUNCTIONS
 def load_stations(path):
