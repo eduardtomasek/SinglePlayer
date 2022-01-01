@@ -8,14 +8,35 @@ import urllib.request
 from urllib.parse import urlparse
 import re
 import RPi.GPIO as GPIO
+import textwrap
 
 import vlc
 import requests
 
+# DISPLAY
+import board
+import adafruit_ssd1306 # this sets GPIO mode 11 (bcm)
+from PIL import Image, ImageDraw, ImageFont
+
+DISPLAY_WIDTH = 128
+DISPLAY_HEIGHT = 64
+DISPLAY_BORDER = 3
+DISPLAY_INNER_BORDER = 2
+DISPLAY_ADDRESS = 0x3c
+DISPLAY_TEXT_MAX_LENGTH = 18
+DISPLAY_TEXT_MAX_LINES = 4
+DISPLAY_YELLOW_AREA_OFFSET = 10
+
+i2c = board.I2C()
+oled = adafruit_ssd1306.SSD1306_I2C(DISPLAY_WIDTH, DISPLAY_HEIGHT, i2c, addr=DISPLAY_ADDRESS)
+
+# GPIO SETTINGS
 GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# GPIO.setmode(GPIO.BOARD)
+# GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # GLOBALS
 LOG_FORMAT = '%(asctime)s %(process)d %(levelname)s %(message)s'
@@ -38,14 +59,9 @@ class VLC:
 		self.listPlayer.play()
 
 	def next(self):
-		#nextDone = self.listPlayer.next()
-		#logging.info('next: %s', nextDone)
-
-		#if nextDone == -1:
-			#nextDone = self.listPlayer.next()
-
-		#if nextDone != -1:
-			#self.setStationIndex()
+		# Media list player method "next" appears to be not reliable. (https://www.olivieraubert.net/vlc/python-ctypes/doc/vlc-pysrc.html#MediaListPlayer.next)
+		# I decided mirror playlist in code and just play specific item by index.
+		# It looks like more reliable.
 		
 		self.setStationIndex()
 		self.playItemOnIndex(self.stationIndex)
@@ -193,12 +209,15 @@ class StationsList:
 def playpause_callback(channel):
 	if player.togglePause() == True:
 		logging.info('%s paused', player.getCurrentStationName())
+		display_text('Paused', player.getCurrentStationName())
 	else:
 		logging.info('%s resumed', player.getCurrentStationName())
+		display_text('Playing', player.getCurrentStationName())
 
 def changestation_callback(channel):
 	player.next()
 	logging.info("next [%s] %s", player.getCurrentStationIndex(), player.getCurrentStationName())
+	display_text('Playing', player.getCurrentStationName())
 
 # FUNCTIONS
 def load_stations(path):
@@ -207,6 +226,61 @@ def load_stations(path):
 	f.close()
 
 	return data
+
+def display_text(status = 'Playing', text='Default text'):
+	oled.fill(0)
+	oled.show()
+
+	image = Image.new('1', (oled.width, oled.height))
+	draw = ImageDraw.Draw(image)
+
+	font = ImageFont.load_default()
+
+	# YELLOW AREA
+	(statusWidth, statusHeight) = font.getsize(status)
+	# RIGHT YELLOW TEXT
+	draw.text((oled.width - (statusWidth + DISPLAY_BORDER + DISPLAY_INNER_BORDER), DISPLAY_BORDER + 1), status, font=font, fill=255)
+
+	# LEFT YELLOW TEXT
+	draw.text((DISPLAY_BORDER + DISPLAY_INNER_BORDER, DISPLAY_BORDER + 1), 'OnLine', font=font, fill=255)
+
+	# BLUE AREA
+	(textWidth, textHeight) = font.getsize(text)
+
+	# wrap text with maximum characters per line a and maximum amount of lines
+	textSegments = textwrap.wrap(text, width=DISPLAY_TEXT_MAX_LENGTH)[:DISPLAY_TEXT_MAX_LINES]
+	textSegmentsLength = len(textSegments)
+
+	# we are starting drawing text from the center of screen (with yellow area offset, see display info https://www.aliexpress.com/item/32896971385.html)
+	lines = textSegmentsLength // 2
+
+	# for vertical text centering we need to know if number of lines are odd or even
+	even = True if textSegmentsLength % 2 == 0 else False
+
+	for line in textSegments:
+		(lineWidth, lineHeight) = font.getsize(line)
+
+		# horizontal center is easy
+		lineX = oled.width//2 - lineWidth//2
+
+		if even == False:
+			# for even number of lines we have to shift vertical center up by half line height
+			centerY = (oled.height//2 - lineHeight//2) + DISPLAY_YELLOW_AREA_OFFSET
+		else:
+			# for ood number of lines we just start in our vertical center
+			centerY = (oled.height//2) + DISPLAY_YELLOW_AREA_OFFSET
+		
+		# cause our origin is in vertical center we need to divide lines count by two (half text is in upper half of screen and second half in lower screen part)
+		# with this number in loop we can start draw text from upper half and 
+		# continue to bottom half of given area
+		lineY = centerY - (lines * lineHeight)
+
+		draw.text((lineX, lineY), line, font=font, fill=255)
+
+		lines = lines - 1
+
+	oled.image(image)
+	oled.show()
 
 def main(argv):
 	global player
@@ -221,6 +295,8 @@ def main(argv):
 	formater = logging.Formatter(LOG_FORMAT)
 	handler.setFormatter(formater)
 	root.addHandler(handler)
+
+	logging.info('GPIO mode: %s', GPIO.getmode())
 
 	# PROCESS ARGUMENTS
 	try:
@@ -239,14 +315,17 @@ def main(argv):
 		sys.exit(2)
 
 	# GPIO EVENTS
-	GPIO.add_event_detect(10, GPIO.RISING, callback = playpause_callback, bouncetime=500)
-	GPIO.add_event_detect(12, GPIO.RISING, callback = changestation_callback, bouncetime=500)
+	#GPIO.add_event_detect(10, GPIO.RISING, callback = playpause_callback, bouncetime=500)
+	#GPIO.add_event_detect(12, GPIO.RISING, callback = changestation_callback, bouncetime=500)
+	GPIO.add_event_detect(15, GPIO.RISING, callback = playpause_callback, bouncetime=500)
+	GPIO.add_event_detect(18, GPIO.RISING, callback = changestation_callback, bouncetime=500)
 
 	# PLAYER INIT
 	player = VLC()
 	#player.addPlaylist(stations_preprocessing(stations))
 	player.addPlaylist(sl.preprocessing(stations))
 	player.play()
+	display_text('Playing', player.getCurrentStationName())
 
 	# WAITING FOR STREAM
 	while player.isPlaying() == 0:
