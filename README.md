@@ -141,6 +141,9 @@ if __name__ == "__main__":
         oled.show()
 ```
 
+## Final result
+[![Sunday Projects Single Player I2C Oled display test](https://i9.ytimg.com/vi/cFbxPmB2QRM/mq2.jpg?sqp=CPDYwY4G&rs=AOn4CLCmKOKsXrWRR8zjWK6qgg5B4xQgWA)](https://youtu.be/cFbxPmB2QRM)
+
 # Sources
 Cause my memory is horrible and I did not use python for aeons.
 ## Logging
