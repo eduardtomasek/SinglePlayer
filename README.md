@@ -81,7 +81,7 @@ sudo crontab -e
 ```
 
 # First naive plan :D
-![plan1](./docs/images/firstNaive.png "First Plan")
+![plan1](./docs/images/firstNaive.jpg "First Plan")
 
 # Run Display
 ## Detect I2C device
@@ -141,8 +141,75 @@ if __name__ == "__main__":
         oled.show()
 ```
 
-## Final result
+## Final result (YT)
 [![Sunday Projects Single Player I2C Oled display test](https://i9.ytimg.com/vi/cFbxPmB2QRM/mq2.jpg?sqp=CPDYwY4G&rs=AOn4CLCmKOKsXrWRR8zjWK6qgg5B4xQgWA)](https://youtu.be/cFbxPmB2QRM)
+
+# Components list
+## Raspberry Zero W
+https://www.raspberrypi.com/products/raspberry-pi-zero-w/
+
+![rpizerow](./docs/images/rpizerow.jpg "Raspberry Zero W")
+
+## Wooden Box
+https://www.drevobox.cz/drevene-krabicky/drevena-krabicka-24x10-5x7-cm/
+
+![krabicka](./docs/images/krabicka.jpg "Wooden Box")
+
+## Oled Display
+
+https://www.aliexpress.com/item/32638662748.html (or similar)
+
+![oleddisplay](./docs/images/oleddisplay.jpg "Oled Display")
+
+## Speakers 5W 4Ohms 40mm
+https://www.aliexpress.com/item/1005002662554047.html
+
+![speakers](./docs/images/speakers.jpg "Speakers")
+
+## Sound card
+https://www.aliexpress.com/item/4000598865391.html
+
+![soundcard](./docs/images/soundcard.jpg "Sound card")
+
+## Stereo amplifier 12V 2x10W D Class
+https://www.aliexpress.com/item/1005001621840144.html
+
+![amplifier](./docs/images/amplifier.jpg "Amplifier")
+
+## DC converter 12V to 5V 3A
+https://www.aliexpress.com/item/32960698360.html
+
+![dcconverter](./docs/images/dcconverter.jpg "DC converter")
+
+## LEDs 3-6V 6mm
+https://www.aliexpress.com/item/1005003117140494.html
+
+![statusled](./docs/images/statusled.jpg "Status LEDs")
+
+## Fan 30\*30\*10mm 5V
+https://www.aliexpress.com/item/32407532684.html
+
+![fan](./docs/images/fan.jpg "Fan")
+
+## DC Connector
+https://www.aliexpress.com/item/1005003573403938.html
+
+![dcconnector](./docs/images/dcconnector.jpg "DC Connector")
+
+## 3.5MM Audio Jack Socket
+https://www.aliexpress.com/item/32964979415.html
+
+![audioconnector](./docs/images/audioconnector.jpg "Audio Connector")
+
+## DIP Switch 6P
+https://www.aliexpress.com/item/4000159052465.html
+
+![dipswitch](./docs/images/dipswitch.jpg "Dip Switch")
+
+## Protective mesh
+https://www.aliexpress.com/item/32890142735.html
+
+![protectivemesh](./docs/images/protectivemesh.jpg "Protective Mesh")
 
 # Sources
 Cause my memory is horrible and I did not use python for aeons.
