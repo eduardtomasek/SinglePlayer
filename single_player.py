@@ -26,6 +26,10 @@ DISPLAY_ADDRESS = 0x3c
 DISPLAY_TEXT_MAX_LENGTH = 18
 DISPLAY_TEXT_MAX_LINES = 4
 DISPLAY_YELLOW_AREA_OFFSET = 10
+DISPLAY_TIMEOUT = 300
+
+_displayON = True
+_displayTimeout = 0
 
 i2c = board.I2C()
 oled = adafruit_ssd1306.SSD1306_I2C(DISPLAY_WIDTH, DISPLAY_HEIGHT, i2c, addr=DISPLAY_ADDRESS)
@@ -227,7 +231,33 @@ def load_stations(path):
 
 	return data
 
+# DISPLAY FUNCTIONS
+def display_turn_off():
+	global _displayON
+
+	oled.poweroff()
+
+	_displayON = False
+
+def display_turn_on():
+	global _displayON
+
+	oled.poweron()
+
+	_displayON = True
+
+def display_timeout():
+	global _displayTimeout
+
+	if _displayTimeout > DISPLAY_TIMEOUT:
+		_displayTimeout = 0
+		display_turn_off()
+
+
 def display_text(status = 'Playing', text='Default text'):
+	if _displayON == False:
+		display_turn_on()
+
 	oled.fill(0)
 	oled.show()
 
@@ -284,6 +314,8 @@ def display_text(status = 'Playing', text='Default text'):
 
 def main(argv):
 	global player
+	global _displayTimeout
+
 	stations = []
 	sl = StationsList({ 'tmpFolder': TMP_FOLDER })
 
@@ -333,6 +365,9 @@ def main(argv):
 
 	while True:
 		time.sleep(0.5)
+		_displayTimeout = _displayTimeout + 0.5
+		display_timeout()
+
 
 if __name__ == "__main__":
 	try:
