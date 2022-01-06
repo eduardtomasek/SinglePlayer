@@ -16,7 +16,7 @@ import requests
 # DISPLAY
 import board
 import adafruit_ssd1306 # this sets GPIO mode 11 (bcm)
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont # https://pillow.readthedocs.io/en/stable/
 
 DISPLAY_WIDTH = 128
 DISPLAY_HEIGHT = 64
@@ -365,7 +365,9 @@ def main(argv):
 
 	while True:
 		time.sleep(0.5)
-		_displayTimeout = _displayTimeout + 0.5
+		if (_displayON == True):
+			_displayTimeout = _displayTimeout + 0.5
+
 		display_timeout()
 
 

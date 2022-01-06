@@ -248,5 +248,11 @@ https://github.com/oaubert/python-vlc/blob/master/generated/3.0/vlc.py
 ## I2C OLED display SSD1306
 https://learn.adafruit.com/monochrome-oled-breakouts/python-wiring
 
+https://www.coderdojotc.org/micropython/oled/03-oled-drawing/
+
+https://circuitpython.readthedocs.io/projects/framebuf/en/latest/api.html
+
+https://mpython.readthedocs.io/en/master/library/micropython/framebuf.html
+
 ## Python Imagigng Library
 https://pillow.readthedocs.io/en/stable/index.html
